@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace SqlDtuPerfmon
@@ -96,9 +95,18 @@ namespace SqlDtuPerfmon
 
         private static PerformanceCounter GetPerfCounter(string category, string instance, string counter)
         {
-            var perfCategory = PerformanceCounterCategory.GetCategories()
-                .FirstOrDefault(cat => cat.CategoryName.Equals(category, StringComparison.OrdinalIgnoreCase));
+            var perfCateogies = PerformanceCounterCategory.GetCategories();
+            PerformanceCounterCategory perfCategory = null;
 
+            foreach (var item in perfCateogies)
+            {
+                if (item.CategoryName.Equals(category, StringComparison.OrdinalIgnoreCase))
+                {
+                    perfCategory = item;
+                    break;
+                }
+            }
+            
             if (perfCategory == null)
             {
                 throw new Exception(
@@ -115,8 +123,15 @@ namespace SqlDtuPerfmon
                         $"{instance} doesn't exist. Try running perfmon.exe to identify the correct {instance} instance."));
             }
 
-            var perfCounter =
-                perfInstance.First(cnt => cnt.CounterName.Equals(counter, StringComparison.OrdinalIgnoreCase));
+            PerformanceCounter perfCounter = null;
+
+            foreach (var item in perfInstance)
+            {
+                if (item.CounterName.Equals(counter, StringComparison.OrdinalIgnoreCase)) {
+                    perfCounter = item;
+                    break;
+                }
+            }            
 
             if (perfCounter != null) return perfCounter;
 
