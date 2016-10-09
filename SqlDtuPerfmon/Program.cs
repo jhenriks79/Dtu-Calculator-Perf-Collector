@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -10,6 +11,7 @@ namespace SqlDtuPerfmon
     public class Program
     {
         private static readonly List<PerfItem> PerfItems = new List<PerfItem>();
+        private static CultureInfo s_csvCultureInfo = CultureInfo.GetCultureInfo("en-US");
 
         public static void Main(string[] args)
         {
@@ -174,8 +176,18 @@ namespace SqlDtuPerfmon
                     streamWriter.WriteLine("Interval,% Processor Time,Disk Reads/sec,Disk Writes/sec,Log Bytes Flushed/sec");
                 }
 
-                streamWriter.WriteLine(
-                    $"{perfItem.CollectedDate},{perfItem.Cpu},{perfItem.DiskRead},{perfItem.DiskWrite},{perfItem.LogBytes}");
+                streamWriter.WriteLine(string.Format(
+                        s_csvCultureInfo,
+                        "{0},{1},{2},{3},{4}",
+                        new object[] {
+                            perfItem.CollectedDate,
+                            perfItem.Cpu,
+                            perfItem.DiskRead,
+                            perfItem.DiskWrite,
+                            perfItem.LogBytes
+                        }
+                    )
+                );
             }
         }
 
