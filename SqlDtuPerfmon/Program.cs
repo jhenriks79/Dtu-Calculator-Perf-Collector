@@ -44,6 +44,16 @@ namespace SqlDtuPerfmon
             var sampleInterval = int.Parse(ConfigurationManager.AppSettings["SampleInterval"]);
             var maxSamples = int.Parse(ConfigurationManager.AppSettings["MaxSamples"]);
 
+            // Check if existing perfmon file
+            var fileInfo = new FileInfo(ConfigurationManager.AppSettings["CsvPath"]);
+            var fileExt = fileInfo.Extension;
+
+            var filePath = fileInfo.FullName.Replace(fileExt, "");
+            filePath = $"{filePath}-{DateTime.Now:yyyyMMddhhmmss}{fileExt}";
+
+            // This should never happen but try to delete the file
+            if (File.Exists(filePath)) File.Delete(filePath);
+
             for (var i = 0; i < maxSamples; i++)
             {
                 if (Console.KeyAvailable) break;
@@ -59,7 +69,7 @@ namespace SqlDtuPerfmon
                 });
 
                 // Write the counters to disk and to the console
-                WriteCounters(PerfItems[PerfItems.Count - 1], i);
+                WriteCounters(PerfItems[PerfItems.Count - 1], i, filePath);
                 DisplayCounters(PerfItems[PerfItems.Count - 1], i);
 
                 Thread.Sleep(sampleInterval * 1000);
@@ -163,10 +173,10 @@ namespace SqlDtuPerfmon
             }
         }
 
-        private static void WriteCounters(PerfItem perfItem, int i)
+        private static void WriteCounters(PerfItem perfItem, int i, string filePath)
         {
             // Open the file for writing
-            using (var streamWriter = File.AppendText(ConfigurationManager.AppSettings["CsvPath"]))
+            using (var streamWriter = File.AppendText(filePath))
             {
                 if (i == 0)
                 {
