@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -9,6 +10,7 @@ namespace SqlDtuPerfmon
 {
     public class Program
     {
+        private static readonly CultureInfo _cultureInfo = CultureInfo.GetCultureInfo("en-US");
         private static readonly List<PerfItem> PerfItems = new List<PerfItem>();
 
         public static void Main(string[] args)
@@ -26,9 +28,7 @@ namespace SqlDtuPerfmon
                 // Check if sql exists - if not proceed anyway
                 var sqlCounter = GetSqlCounter();
                 if (sqlCounter != null)
-                {
                     performanceCounters.Add(sqlCounter);
-                }
 
                 CollectCounters(performanceCounters);
             }
@@ -81,14 +81,9 @@ namespace SqlDtuPerfmon
             const int offset = 22;
 
             if (i == 0)
-            {
-                // Write the header
-                Console.WriteLine(
-                    $"|{"Interval",offset}|{"Cpu",offset}|{"Disk Read",offset}|{"Disk Write",offset}|{"Log Bytes",offset}|");
-            }
+                Console.WriteLine($"|{"Interval",offset}|{"Cpu",offset}|{"Disk Read",offset}|{"Disk Write",offset}|{"Log Bytes",offset}|");
 
-            Console.WriteLine(
-                $"|{perfItem.CollectedDate,offset}|{perfItem.Cpu,offset}|{perfItem.DiskRead,offset}|{perfItem.DiskWrite,offset}|{perfItem.LogBytes,offset}|");
+            Console.WriteLine($"|{perfItem.CollectedDate,offset}|{perfItem.Cpu,offset}|{perfItem.DiskRead,offset}|{perfItem.DiskWrite,offset}|{perfItem.LogBytes,offset}|");
         }
 
         private static PerformanceCounter GetDiskReadCounter()
@@ -109,44 +104,37 @@ namespace SqlDtuPerfmon
             PerformanceCounterCategory perfCategory = null;
 
             foreach (var item in perfCateogies)
-            {
                 if (item.CategoryName.Equals(category, StringComparison.OrdinalIgnoreCase))
                 {
                     perfCategory = item;
                     break;
                 }
-            }
-            
+
             if (perfCategory == null)
-            {
                 throw new Exception(
-                    string.Format(
+                    string.Format(_cultureInfo,
                         $"{category} doesn't exist. Try running perfmon.exe to identify the correct {category} category."));
-            }
 
             var perfInstance = perfCategory.GetCounters(instance);
 
             if (perfInstance.Length == 0)
-            {
                 throw new Exception(
-                    string.Format(
+                    string.Format(_cultureInfo,
                         $"{instance} doesn't exist. Try running perfmon.exe to identify the correct {instance} instance."));
-            }
 
             PerformanceCounter perfCounter = null;
 
             foreach (var item in perfInstance)
-            {
-                if (item.CounterName.Equals(counter, StringComparison.OrdinalIgnoreCase)) {
+                if (item.CounterName.Equals(counter, StringComparison.OrdinalIgnoreCase))
+                {
                     perfCounter = item;
                     break;
                 }
-            }            
 
             if (perfCounter != null) return perfCounter;
 
             throw new Exception(
-                string.Format(
+                string.Format(_cultureInfo,
                     $"{counter} doesn't exist. Try running perfmon.exe to identify the correct {counter} counter."));
         }
 
@@ -179,13 +167,10 @@ namespace SqlDtuPerfmon
             using (var streamWriter = File.AppendText(filePath))
             {
                 if (i == 0)
-                {
-                    // Write the header
                     streamWriter.WriteLine("Interval,% Processor Time,Disk Reads/sec,Disk Writes/sec,Log Bytes Flushed/sec");
-                }
 
                 streamWriter.WriteLine(
-                    $"{perfItem.CollectedDate},{perfItem.Cpu},{perfItem.DiskRead},{perfItem.DiskWrite},{perfItem.LogBytes}");
+                    string.Format(_cultureInfo, "{0},{1},{2},{3},{4}", perfItem.CollectedDate, perfItem.Cpu, perfItem.DiskRead, perfItem.DiskWrite, perfItem.LogBytes));
             }
         }
 
