@@ -167,10 +167,10 @@ namespace SqlDtuPerfmon
             using (var streamWriter = File.AppendText(filePath))
             {
                 if (i == 0)
-                    streamWriter.WriteLine("Interval,% Processor Time,Disk Reads/sec,Disk Writes/sec,Log Bytes Flushed/sec");
+                    streamWriter.WriteLine("Interval|% Processor Time|Disk Reads/sec|Disk Writes/sec|Log Bytes Flushed/sec");
 
                 streamWriter.WriteLine(
-                    string.Format(_cultureInfo, "{0},{1},{2},{3},{4}", perfItem.CollectedDate, perfItem.Cpu, perfItem.DiskRead, perfItem.DiskWrite, perfItem.LogBytes));
+                    string.Format(_cultureInfo, "{0}|{1}|{2}|{3}|{4}", perfItem.CollectedDate, perfItem.Cpu, perfItem.DiskRead, perfItem.DiskWrite, perfItem.LogBytes));
             }
         }
 
